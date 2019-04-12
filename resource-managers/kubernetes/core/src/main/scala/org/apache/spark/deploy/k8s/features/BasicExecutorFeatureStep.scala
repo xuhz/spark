@@ -75,6 +75,17 @@ private[spark] class BasicExecutorFeatureStep(
       executorCores.toString
     }
   private val executorLimitCores = kubernetesConf.get(KUBERNETES_EXECUTOR_LIMIT_CORES)
+  private val executorLimitRes = kubernetesConf.get(KUBERNETES_EXECUTOR_LIMIT_RESOURCES)
+  private var limitRes = Map[String, Quantity]()
+  executorLimitRes match {
+    case Some(executorLimitRes) => limitRes = executorLimitRes.split(",").map(_.split(":")).map {res => 
+      val k = res(0).trim
+      val v = new QuantityBuilder(false)
+        .withAmount(res(1).trim)
+        .build()
+      k -> v}.toMap   
+    case _ =>
+  }
 
   override def configurePod(pod: SparkPod): SparkPod = {
     val name = s"$executorPodNamePrefix-exec-${kubernetesConf.executorId}"
@@ -168,6 +179,7 @@ private[spark] class BasicExecutorFeatureStep(
         .addToRequests("memory", executorMemoryQuantity)
         .addToLimits("memory", executorMemoryQuantity)
         .addToRequests("cpu", executorCpuQuantity)
+        .addToLimits(limitRes.asJava)
         .endResources()
         .addNewEnv()
           .withName(ENV_SPARK_USER)

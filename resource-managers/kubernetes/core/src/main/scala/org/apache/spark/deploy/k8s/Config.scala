@@ -137,6 +137,12 @@ private[spark] object Config extends Logging {
       .stringConf
       .createOptional
 
+  val KUBERNETES_EXECUTOR_LIMIT_RESOURCES =
+    ConfigBuilder("spark.kubernetes.executor.limit.resources")
+      .doc("Specify the device resources limit for each executor pod")
+      .stringConf
+      .createOptional
+
   val KUBERNETES_EXECUTOR_REQUEST_CORES =
     ConfigBuilder("spark.kubernetes.executor.request.cores")
       .doc("Specify the cpu request for each executor pod")
